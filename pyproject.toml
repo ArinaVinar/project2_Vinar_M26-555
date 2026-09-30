@@ -1,0 +1,36 @@
+[project]
+name = "project2_Vinar_M26-555"
+version = "0.1.0"
+description = "Консольная БД"
+readme = "README.md"
+authors = [
+    { name = "Arina Vinar", email = "arina_vinar_05@mail.ru" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "prompt>=0.4.1",
+]
+
+[project.scripts]
+database = "primitive_db.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.9",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/primitive_db"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+exclude = [".venv", "dist", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = []

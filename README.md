@@ -63,3 +63,26 @@ list_tables
 drop_table users
 exit
 ```
+
+## CRUD-операции
+
+Записи хранятся в отдельных JSON-файлах в директории `data/`.
+Все поля обязательны. ID генерируется автоматически и не передаётся
+в команде `insert`.
+
+Строки указываются в кавычках, целые числа без кавычек,
+логические значения как `true` или `false`.
+
+```text
+insert into users values ("John", 28, true)
+select from users
+select from users where age = 28
+update users set age = 29 where name = "John"
+delete from users where ID = 1
+info users
+```
+
+Условия `where` поддерживают одно сравнение на равенство.
+В `set` можно указать несколько присваиваний через запятую.
+Обновление и удаление применяются ко всем подходящим записям.
+Изменение ID запрещено.

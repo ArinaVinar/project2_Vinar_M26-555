@@ -28,6 +28,7 @@ from primitive_db.utils import (
 
 
 def print_help():
+    """Выводит справку по всем командам приложения."""
     print("Управление таблицами:")
     print("create_table <таблица> <столбец:тип> ... - создать таблицу")
     print("list_tables - показать список таблиц")
@@ -50,6 +51,7 @@ def print_help():
 
 
 def run_command(metadata, args):
+    """Выполняет команды управления таблицами и вызова справки."""
     command = args[0]
     arguments = args[1:]
 
@@ -69,7 +71,10 @@ def run_command(metadata, args):
                 f"{name}:{data_type}"
                 for name, data_type in result[table_name].items()
             )
-            print(f"Таблица `{table_name}` создана со столбцами: {columns_text}")
+            print(
+                f'Таблица "{table_name}" успешно создана '
+                f"со столбцами: {columns_text}"
+            )
 
     elif command == "drop_table":
         if len(arguments) != 1:
@@ -83,7 +88,7 @@ def run_command(metadata, args):
             delete_table_data(table_name)
             save_metadata(META_FILE, result)
             clear_select_cache()
-            print(f"Таблица {table_name} удалена")
+            print(f'Таблица "{table_name}" успешно удалена')
 
     elif command == "list_tables":
         if arguments:
@@ -98,10 +103,11 @@ def run_command(metadata, args):
         print_help()
 
     else:
-        print(f"Функция {command} не существует. Попробуйте снова")
+        print(f"Функции {command} нет. Попробуйте снова")
 
 
 def run():
+    """Запускает основной цикл команд и обрабатывает ошибки ввода."""
     print_help()
 
     while True:
@@ -153,6 +159,7 @@ def run():
 
 
 def print_records(schema, records):
+    """Выводит записи в консольной таблице с порядком столбцов из схемы."""
     table = PrettyTable()
     table.field_names = list(schema)
 
@@ -163,6 +170,7 @@ def print_records(schema, records):
 
 
 def execute_data_command(metadata, tokens):
+    """Выполняет CRUD-команды, сохраняет изменения и выводит результат."""
     command = tokens[0]
     table_name, payload, where_clause = parse_data_command(tokens)
 

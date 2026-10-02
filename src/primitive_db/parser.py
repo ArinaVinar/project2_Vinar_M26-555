@@ -2,10 +2,11 @@ import shlex
 
 
 def tokenize(user_input):
+    """Разбивает команду на токены, сохраняя кавычки строковых значений."""
     lexer = shlex.shlex(
         user_input,
         posix=False,
-        punctuation_chars="(),="
+        punctuation_chars="(),=",
     )
     lexer.whitespace_split = True
     lexer.commenters = ""
@@ -20,7 +21,9 @@ def tokenize(user_input):
 
     return tokens
 
+
 def parse_value(token):
+    """Преобразует токен в строку, целое число или логическое значение."""
     if len(token) >= 2 and token[0] in ("'", '"') and token[-1] == token[0]:
         return token[1:-1]
 
@@ -35,7 +38,9 @@ def parse_value(token):
     except ValueError:
         raise ValueError(f"{token}; строки должны быть в кавычках") from None
 
+
 def parse_values(tokens):
+    """Разбирает значения в круглых скобках, разделённые запятыми."""
     if len(tokens) < 2 or tokens[0] != "(" or tokens[-1] != ")":
         raise ValueError("values должны быть в круглых скобках")
 
@@ -58,7 +63,9 @@ def parse_values(tokens):
 
     return values
 
+
 def parse_assignments(tokens):
+    """Преобразует присваивания столбец = значение в словарь."""
     if not tokens or len(tokens) % 4 != 3:
         raise ValueError("Ожидается столбец = значение")
 
@@ -83,20 +90,24 @@ def parse_assignments(tokens):
 
     return assignments
 
+
 def parse_where(tokens):
+    """Разбирает одно условие равенства и возвращает словарь."""
     if len(tokens) != 3:
         raise ValueError("Where должен содержать столбец = значение")
 
     return parse_assignments(tokens)
 
+
 def parse_data_command(tokens):
+    """Возвращает имя таблицы, данные операции и условие из команды."""
     command = tokens[0]
 
     if command == "insert":
         if (
-                len(tokens) < 6
-                or tokens[1] != "into"
-                or tokens[3] != "values"
+            len(tokens) < 6
+            or tokens[1] != "into"
+            or tokens[3] != "values"
         ):
             raise ValueError(
                 "Ожидается insert into <таблица> values (...)"

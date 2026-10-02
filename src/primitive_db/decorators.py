@@ -2,7 +2,9 @@ import time
 
 
 def handle_db_errors(func):
+    """Оборачивает функцию обработкой ошибок базы данных."""
     def wrapper(*args, **kwargs):
+        """Выполняет функцию и возвращает None при обработанной ошибке."""
         try:
             return func(*args, **kwargs)
         except FileNotFoundError:
@@ -20,9 +22,13 @@ def handle_db_errors(func):
     wrapper.__doc__ = func.__doc__
     return wrapper
 
+
 def confirm_action(action_name):
+    """Создаёт декоратор подтверждения указанного действия."""
     def decorator(func):
+        """Добавляет запрос подтверждения перед вызовом функции."""
         def wrapper(*args, **kwargs):
+            """Выполняет действие при ответе y, иначе возвращает None."""
             answer = input(
                 f"Вы уверены, что хотите выполнить `{action_name}`? [y/n]: "
             )
@@ -38,8 +44,11 @@ def confirm_action(action_name):
 
     return decorator
 
+
 def log_time(func):
+    """Добавляет измерение и вывод времени выполнения функции."""
     def wrapper(*args, **kwargs):
+        """Вызывает функцию и выводит длительность её выполнения."""
         started_at = time.monotonic()
 
         try:
@@ -55,16 +64,20 @@ def log_time(func):
     wrapper.__doc__ = func.__doc__
     return wrapper
 
+
 def create_cacher():
+    """Создаёт функцию кэширования со словарём в замыкании."""
     cache = {}
 
     def cache_result(key, value_func):
+        """Возвращает результат из кэша или вычисляет и сохраняет его."""
         if key not in cache:
             cache[key] = value_func()
 
         return cache[key]
 
     def clear_cache():
+        """Удаляет все результаты из кэша."""
         cache.clear()
 
     cache_result.clear = clear_cache

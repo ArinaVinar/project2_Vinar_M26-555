@@ -6,6 +6,7 @@ from prettytable import PrettyTable
 
 from primitive_db.constants import ID_COLUMN, META_FILE
 from primitive_db.core import (
+    clear_select_cache,
     create_table,
     delete,
     drop_table,
@@ -47,6 +48,7 @@ def print_help():
     print("help - справочная информация")
     print("exit - выход из программы\n")
 
+
 def run_command(metadata, args):
     command = args[0]
     arguments = args[1:]
@@ -59,24 +61,28 @@ def run_command(metadata, args):
         columns = arguments[1:]
         result = create_table(metadata, table_name, columns)
 
-        if result is not  None:
+        if result is not None:
             save_table_data(table_name, [])
             save_metadata(META_FILE, result)
+            clear_select_cache()
             columns_text = ", ".join(
-                f"{name}:{data_type}" for name, data_type in result[table_name].items()
+                f"{name}:{data_type}"
+                for name, data_type in result[table_name].items()
             )
             print(f"Таблица `{table_name}` создана со столбцами: {columns_text}")
 
     elif command == "drop_table":
         if len(arguments) != 1:
-            raise  ValueError("Ожидается одно имя таблицы")
+            raise ValueError("Ожидается одно имя таблицы")
 
         table_name = arguments[0]
+        get_schema(metadata, table_name)
         result = drop_table(metadata, table_name)
 
         if result is not None:
             delete_table_data(table_name)
             save_metadata(META_FILE, result)
+            clear_select_cache()
             print(f"Таблица {table_name} удалена")
 
     elif command == "list_tables":
@@ -93,6 +99,7 @@ def run_command(metadata, args):
 
     else:
         print(f"Функция {command} не существует. Попробуйте снова")
+
 
 def run():
     print_help()
@@ -134,10 +141,16 @@ def run():
 
         except json.JSONDecodeError:
             print("Ошибка: файл записей содержит некорректный JSON")
+        except KeyError as error:
+            print(f"Ошибка: таблица или столбец {error} не найден")
         except ValueError as error:
             print(f"Некорректное значение: {error}. Попробуйте снова")
         except OSError as error:
             print(f"Ошибка работы с файлами: {error}")
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return
+
 
 def print_records(schema, records):
     table = PrettyTable()
@@ -164,6 +177,7 @@ def execute_data_command(metadata, tokens):
 
         if result is not None:
             save_table_data(table_name, result)
+            clear_select_cache()
             record_id = result[-1][ID_COLUMN]
             print(
                 f"Запись с ID={record_id} успешно добавлена "
@@ -172,7 +186,9 @@ def execute_data_command(metadata, tokens):
 
     elif command == "select":
         records = select(table_data, where_clause)
-        print_records(schema, records)
+
+        if records is not None:
+            print_records(schema, records)
 
     elif command == "info":
         columns_text = ", ".join(
@@ -192,8 +208,11 @@ def execute_data_command(metadata, tokens):
 
         affected_records = select(table_data, where_clause)
 
+        if affected_records is None:
+            return
+
         if not affected_records:
-            print("Подходящие записи не найдены.")
+            print("Подходящие записи не найдены")
             return
 
         if command == "update":
@@ -205,6 +224,7 @@ def execute_data_command(metadata, tokens):
             return
 
         save_table_data(table_name, result)
+        clear_select_cache()
 
         for record in affected_records:
             record_id = record[ID_COLUMN]
